@@ -39,9 +39,9 @@ void USART1_Init(void)
         Error_Handler();
     }
 
-    // /* 启动串口中断 */
-    // HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
-    // HAL_NVIC_EnableIRQ(USART1_IRQn);
+    /* 启动串口中断 */
+    HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
 }
 
 /**
@@ -52,7 +52,7 @@ void USART1_DeInit(UART_HandleTypeDef *huart)
 {
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9 | GPIO_PIN_10);
     /* USART1 interrupt DeInit */
-    // HAL_NVIC_DisableIRQ(USART1_IRQn);
+    HAL_NVIC_DisableIRQ(USART1_IRQn);
 }
 
 /**

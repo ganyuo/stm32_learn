@@ -3,10 +3,35 @@
 #include "gpio_init.h"
 #include "usart_init.h"
 
-/**
- * @brief  The application entry point.
- * @retval int
- */
+uint8_t uart_buff[2];
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    GPIO_PinState led_state;
+    HAL_UART_Transmit_IT(&usart1, uart_buff, 2);
+    if(uart_buff[1] == '0')
+    {
+        led_state = GPIO_PIN_RESET;
+    }
+    else
+    {
+        led_state = GPIO_PIN_SET;
+    }
+    if(uart_buff[0] == 'R')
+    {
+        HAL_GPIO_WritePin(GPIOD, LED_RED_PIN, led_state);
+    }
+    else if(uart_buff[0] == 'G')
+    {
+        HAL_GPIO_WritePin(GPIOD, LED_GREEN_PIN, led_state);
+    }
+    else if(uart_buff[0] == 'B')
+    {
+        HAL_GPIO_WritePin(GPIOD, LED_BLUE_PIN, led_state);
+    }
+    HAL_UART_Receive_IT(&usart1, uart_buff, 2);
+}
+
 int main(void)
 {
     /* MCU Configuration--------------------------------------------------------*/
@@ -21,34 +46,9 @@ int main(void)
     GPIO_Init();
     USART1_Init();
 
-    uint8_t uart_buff[2];
-    GPIO_PinState led_state;
-
+    HAL_UART_Receive_IT(&usart1, uart_buff, 2);
     /* Infinite loop */
     while (1)
     {
-        HAL_UART_Receive(&usart1, uart_buff, 2, HAL_MAX_DELAY);
-        HAL_UART_Transmit(&usart1, uart_buff, 2, 100);
-
-        if(uart_buff[1] == '0')
-        {
-            led_state = GPIO_PIN_RESET;
-        }
-        else
-        {
-            led_state = GPIO_PIN_SET;
-        }
-        if(uart_buff[0] == 'R')
-        {
-            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, led_state);
-        }
-        else if(uart_buff[0] == 'G')
-        {
-            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, led_state);
-        }
-        else if(uart_buff[0] == 'B')
-        {
-            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, led_state);
-        }
     }
 }
