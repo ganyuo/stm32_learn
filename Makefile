@@ -37,7 +37,6 @@ OBJECTS_DIR = build/objects
 ######################################
 # C sources
 C_SOURCES =  \
-Core/Src/main.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/stm32f4xx_hal_msp.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
@@ -54,7 +53,14 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-Core/Src/system_stm32f4xx.c  
+Core/Src/system_stm32f4xx.c
+
+C_SOURCES += \
+Core/Src/error_handler.c \
+Core/Src/system_clock_init.c \
+Core/Src/gpio_init.c \
+Core/Src/usart_init.c \
+Core/Src/main.c
 
 # ASM sources
 ASM_SOURCES =  \
