@@ -58,16 +58,55 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint8_t deal_bluetooth_data(uint8_t *data, uint16_t size)
+{
+    if (data[0] != 0xAA && data[1] > size)
+    {
+        return 1;
+    }
+    uint8_t cmd_len = data[1] - 1;
+    uint8_t check_sum = 0;
+    for(uint8_t i = 0; i < cmd_len; i++)
+    {
+        check_sum += data[i];
+    }
+    if(check_sum != data[cmd_len])
+    {
+        return 2;
+    }
+
+    for(uint8_t i = 2; i < cmd_len; i += 2)
+    {
+        GPIO_PinState led_state;
+        if(data[i + 1] == 0x00)
+        {
+            led_state = GPIO_PIN_SET;
+        }
+        else
+        {
+            led_state = GPIO_PIN_RESET;
+        }
+        if(data[i] == 0x01)
+        {
+            HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
+        }
+    }
+    return 0;
+}
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
     if(huart == &huart1)
     {
-        // HAL_UART_Transmit_DMA(huart, (uint8_t *)&(huart->RxEventType), sizeof(huart->RxEventType));
         // if(huart->RxEventType == HAL_UART_RXEVENT_HT)
         // {
         //     return ;
         // }
         HAL_UART_Transmit_DMA(huart, receive_data, Size);
+
+        deal_bluetooth_data(receive_data, Size);
+
         HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_data, sizeof(receive_data));
         __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT); /* 取消接收过半中断 */
     }
