@@ -4,9 +4,7 @@
     "cortex-debug.armToolchainPath": "${env:HOME}/programs/gcc-arm-none-eabi-10.3/bin",
     "cortex-debug.gdbPath": "${env:HOME}/programs/gcc-arm-none-eabi-10.3/bin/arm-none-eabi-gdb",
     "files.associations": {
-        "stm32f4xx_hal.h": "c",
-        "stm32f4xx_hal_conf.h": "c",
         "main.h": "c",
-        "stm32f4xx_it.h": "c"
+        "stm32f1xx_hal_def.h": "c"
     }
 }

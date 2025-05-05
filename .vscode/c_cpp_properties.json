@@ -7,7 +7,7 @@
             ],
             "defines": [
                 "USE_HAL_DRIVER", /* 加上这两个 */
-                "STM32F407xx"     /* 这个要根据MCU型号来写 */
+                "STM32F103xB"     /* 这个要根据MCU型号来写 */
             ],
             "compilerPath": "${env:HOME}/programs/gcc-arm-none-eabi-10.3/bin/arm-none-eabi-gcc",
             "cStandard": "gnu11",
