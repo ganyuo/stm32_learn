@@ -45,7 +45,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t receive_data[2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,7 +56,24 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    HAL_UART_Transmit_IT(&huart1, receive_data, 2);
+    GPIO_PinState led_state;
+    if(receive_data[1] == '0')
+    {
+        led_state = GPIO_PIN_SET;
+    }
+    else
+    {
+        led_state = GPIO_PIN_RESET;
+    }
+    if(receive_data[0] == 'Y')
+    {
+        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
+    }
+    HAL_UART_Receive_IT(&huart1, receive_data, 2);
+}
 /* USER CODE END 0 */
 
 /**
@@ -90,30 +107,14 @@ int main(void)
     MX_GPIO_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
-    uint8_t receive_data[2];
+
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
+    HAL_UART_Receive_IT(&huart1, receive_data, 2);
     while (1)
     {
-        // HAL_GPIO_TogglePin(GPIOC, LED_Pin);
-        HAL_UART_Receive(&huart1, receive_data, 2, HAL_MAX_DELAY);
-        HAL_UART_Transmit(&huart1, receive_data, 2, HAL_MAX_DELAY);
-
-        GPIO_PinState led_state;
-        if(receive_data[1] == '0')
-        {
-            led_state = GPIO_PIN_SET;
-        }
-        else
-        {
-            led_state = GPIO_PIN_RESET;
-        }
-        if(receive_data[0] == 'Y')
-        {
-            HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
-        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
