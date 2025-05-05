@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -45,7 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t receive_data[2];
+uint8_t receive_data[64];
+extern DMA_HandleTypeDef hdma_usart1_rx;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,24 +58,21 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-    HAL_UART_Transmit_IT(&huart1, receive_data, 2);
-    GPIO_PinState led_state;
-    if(receive_data[1] == '0')
+    if(huart == &huart1)
     {
-        led_state = GPIO_PIN_SET;
+        // HAL_UART_Transmit_DMA(huart, (uint8_t *)&(huart->RxEventType), sizeof(huart->RxEventType));
+        // if(huart->RxEventType == HAL_UART_RXEVENT_HT)
+        // {
+        //     return ;
+        // }
+        HAL_UART_Transmit_DMA(huart, receive_data, Size);
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_data, sizeof(receive_data));
+        __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT); /* 取消接收过半中断 */
     }
-    else
-    {
-        led_state = GPIO_PIN_RESET;
-    }
-    if(receive_data[0] == 'Y')
-    {
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
-    }
-    HAL_UART_Receive_IT(&huart1, receive_data, 2);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -105,6 +104,7 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
+    MX_DMA_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
 
@@ -112,7 +112,8 @@ int main(void)
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    HAL_UART_Receive_IT(&huart1, receive_data, 2);
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart1, receive_data, sizeof(receive_data));
+    __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT); /* 取消接收过半中断 */
     while (1)
     {
         /* USER CODE END WHILE */
