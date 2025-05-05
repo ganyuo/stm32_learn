@@ -7,8 +7,6 @@
         "stm32f4xx_hal.h": "c",
         "stm32f4xx_hal_conf.h": "c",
         "main.h": "c",
-        "stm32f4xx_it.h": "c",
-        "gpio_init.h": "c",
-        "usart_init.h": "c"
+        "stm32f4xx_it.h": "c"
     }
 }
