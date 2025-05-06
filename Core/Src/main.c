@@ -49,6 +49,15 @@
 
 /* USER CODE BEGIN PV */
 
+enum aht20_state_t
+{
+    AHT20_STATA_BEGIN       = 0,
+    AHT20_STATA_SENDING     = 1,
+    AHT20_STATA_SEND_FINISH = 2,
+    AHT20_STATA_READING     = 3,
+    AHT20_STATA_READ_FINISH = 4
+} aht20_state;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,7 +68,21 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+    if(hi2c == &hi2c1)
+    {
+        aht20_state = AHT20_STATA_SEND_FINISH;
+    }
+}
 
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+    if(hi2c == &hi2c1)
+    {
+        aht20_state = AHT20_STATA_READ_FINISH;
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -104,10 +127,25 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        AHT20_Read(&temperature, &humidity);
-        sprintf(message, "温度：%.1f ℃，湿度：%.1f %%\n", temperature, humidity);
-        HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-        HAL_Delay(1000);
+        if(aht20_state == AHT20_STATA_BEGIN)
+        {
+            AHT20_Measure();
+            aht20_state = AHT20_STATA_SENDING;
+        }
+        else if(aht20_state == AHT20_STATA_SEND_FINISH)
+        {
+            HAL_Delay(75);
+            AHT20_Get();
+            aht20_state = AHT20_STATA_READING;
+        }
+        else if(aht20_state == AHT20_STATA_READ_FINISH)
+        {
+            AHT20_Analysis(&temperature, &humidity);
+            sprintf(message, "温度：%.1f ℃，湿度：%.1f %%\n", temperature, humidity);
+            HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+            HAL_Delay(1000);
+            aht20_state = AHT20_STATA_BEGIN;
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
