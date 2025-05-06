@@ -8,7 +8,7 @@
             "executable": "${workspaceRoot}/build/${workspaceFolderBasename}.elf",
             "request": "launch",
 			"type": "cortex-debug",
-			"svdFile": "STM32F103.svd",
+			"svdFile": "STM32F103xx.svd",
             "servertype": "openocd",
             "configFiles":[
                 "${workspaceRoot}/openocd.cfg"
