@@ -39,12 +39,12 @@ void AHT20_Read(float *temperature, float *humidity)
 void AHT20_Measure()
 {
     static uint8_t send_buff[3] = {0xAC, 0x33, 0x00};
-    HAL_I2C_Master_Transmit_IT(&hi2c1, AHT20_ADDRESS, send_buff, 3);
+    HAL_I2C_Master_Transmit_DMA(&hi2c1, AHT20_ADDRESS, send_buff, 3);
 }
 
 void AHT20_Get()
 {
-    HAL_I2C_Master_Receive_IT(&hi2c1, AHT20_ADDRESS, read_buff, 6);
+    HAL_I2C_Master_Receive_DMA(&hi2c1, AHT20_ADDRESS, read_buff, 6);
 }
 
 void AHT20_Analysis(float *temperature, float *humidity)
