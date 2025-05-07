@@ -58,6 +58,7 @@ Core/Src/i2c.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c \
 Core/Src/dma.c \
 Core/Src/aht20.c \
+Core/Src/font.c \
 Core/Src/oled.c
 
 # ASM sources

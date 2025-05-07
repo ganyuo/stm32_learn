@@ -61,16 +61,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void OLED_Test()
-{
-    OLED_SendCmd(0xB0);
-    OLED_SendCmd(0x00);
-    OLED_SendCmd(0x10);
-
-    uint8_t send_buf[] = {0x40, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
-    HAL_I2C_Master_Transmit(&hi2c1, OLED_ADDRESS, send_buf, sizeof(send_buf), HAL_MAX_DELAY);
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -106,18 +96,7 @@ int main(void)
     MX_USART1_UART_Init();
     MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
-
-    HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET); /* 初始化片选CS */
-    HAL_GPIO_WritePin(OLED_DC_GPIO_Port, OLED_DC_Pin, GPIO_PIN_SET);   /* 初始化地址选择DC */
-    /* 初始化OLED RESET */
-    HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_RESET);
-    HAL_Delay(200);
-    HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_SET);
     OLED_Init();
-
-    OLED_NewFrame();
-    OLED_ShowFrame();
-    // OLED_Test();
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -126,9 +105,11 @@ int main(void)
     {
         for(uint8_t i = 0; i < 64; i++)
         {
-            // OLED_NewFrame();
+            OLED_NewFrame();
 
-            OLED_SetPixel(2 * i, i);
+            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, i, OLED_COLOR_NORMAL);
+            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, 2 * i, OLED_COLOR_NORMAL);
+            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, 3 * i, OLED_COLOR_NORMAL);
 
             OLED_ShowFrame();
         }
