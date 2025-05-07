@@ -107,9 +107,8 @@ int main(void)
         {
             OLED_NewFrame();
 
-            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, i, OLED_COLOR_NORMAL);
-            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, 2 * i, OLED_COLOR_NORMAL);
-            OLED_DrawCircle(OLED_COLUMN >> 1, OLED_ROW >> 1, 3 * i, OLED_COLOR_NORMAL);
+            OLED_DrawImage((OLED_COLUMN - huajiImg.w) >> 1, 0, &huajiImg, OLED_COLOR_NORMAL);
+            OLED_PrintString(OLED_COLUMN - 2 * i, huajiImg.h + 8, "滑稽!!!", &font16x16, OLED_COLOR_NORMAL);
 
             OLED_ShowFrame();
         }
