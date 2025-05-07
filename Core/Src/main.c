@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "aht20.h"
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,15 +50,6 @@
 
 /* USER CODE BEGIN PV */
 
-enum aht20_state_t
-{
-    AHT20_STATA_BEGIN       = 0,
-    AHT20_STATA_SENDING     = 1,
-    AHT20_STATA_SEND_FINISH = 2,
-    AHT20_STATA_READING     = 3,
-    AHT20_STATA_READ_FINISH = 4
-} aht20_state;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,21 +60,17 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+
+void OLED_Test()
 {
-    if(hi2c == &hi2c1)
-    {
-        aht20_state = AHT20_STATA_SEND_FINISH;
-    }
+    OLED_SendCmd(0xB0);
+    OLED_SendCmd(0x00);
+    OLED_SendCmd(0x10);
+
+    uint8_t send_buf[] = {0x40, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+    HAL_I2C_Master_Transmit(&hi2c1, OLED_ADDRESS, send_buf, sizeof(send_buf), HAL_MAX_DELAY);
 }
 
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-    if(hi2c == &hi2c1)
-    {
-        aht20_state = AHT20_STATA_READ_FINISH;
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -119,34 +106,31 @@ int main(void)
     MX_USART1_UART_Init();
     MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
-    AHT20_Init();
 
-    float temperature, humidity;
-    char message[50];
+    HAL_GPIO_WritePin(OLED_CS_GPIO_Port, OLED_CS_Pin, GPIO_PIN_RESET); /* 初始化片选CS */
+    HAL_GPIO_WritePin(OLED_DC_GPIO_Port, OLED_DC_Pin, GPIO_PIN_SET);   /* 初始化地址选择DC */
+    /* 初始化OLED RESET */
+    HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_RESET);
+    HAL_Delay(200);
+    HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_SET);
+    OLED_Init();
+
+    OLED_NewFrame();
+    OLED_ShowFrame();
+    // OLED_Test();
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        if(aht20_state == AHT20_STATA_BEGIN)
+        for(uint8_t i = 0; i < 64; i++)
         {
-            AHT20_Measure();
-            aht20_state = AHT20_STATA_SENDING;
-        }
-        else if(aht20_state == AHT20_STATA_SEND_FINISH)
-        {
-            HAL_Delay(75);
-            AHT20_Get();
-            aht20_state = AHT20_STATA_READING;
-        }
-        else if(aht20_state == AHT20_STATA_READ_FINISH)
-        {
-            AHT20_Analysis(&temperature, &humidity);
-            sprintf(message, "温度：%.1f ℃，湿度：%.1f %%\n", temperature, humidity);
-            HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-            HAL_Delay(1000);
-            aht20_state = AHT20_STATA_BEGIN;
+            // OLED_NewFrame();
+
+            OLED_SetPixel(2 * i, i);
+
+            OLED_ShowFrame();
         }
         /* USER CODE END WHILE */
 

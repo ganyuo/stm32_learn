@@ -5,6 +5,7 @@
     "cortex-debug.gdbPath": "${env:HOME}/programs/gcc-arm-none-eabi-10.3/bin/arm-none-eabi-gdb",
     "files.associations": {
         "main.h": "c",
-        "stm32f1xx_hal_def.h": "c"
+        "stm32f1xx_hal_def.h": "c",
+        "oled.h": "c"
     }
 }

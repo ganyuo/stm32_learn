@@ -1,7 +1,5 @@
 #include "aht20.h"
 
-#define AHT20_ADDRESS 0x70
-
 uint8_t read_buff[6] = {0};
 
 void AHT20_Init()
