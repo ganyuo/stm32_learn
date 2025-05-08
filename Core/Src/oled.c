@@ -67,7 +67,6 @@ void OLED_Init()
     HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_RESET);
     HAL_Delay(200);
     HAL_GPIO_WritePin(OLED_RESET_GPIO_Port, OLED_RESET_Pin, GPIO_PIN_SET);
-    HAL_Delay(20);
 
     OLED_SendCmd(0xAE); /*关闭显示 display off*/
 
@@ -117,6 +116,7 @@ void OLED_Init()
     OLED_ShowFrame();
 
     OLED_SendCmd(0xAF); /*开启显示 display ON*/
+    HAL_Delay(20);
 }
 
 /**
