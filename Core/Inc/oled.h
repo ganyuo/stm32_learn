@@ -14,8 +14,8 @@
 #define OLED_COLUMN 128        // OLED列数
 
 typedef enum {
-  OLED_COLOR_NORMAL = 0, // 正常模式 黑底白字
-  OLED_COLOR_REVERSED    // 反色模式 白底黑字
+    OLED_COLOR_NORMAL = 0, // 正常模式 黑底白字
+    OLED_COLOR_REVERSED    // 反色模式 白底黑字
 } OLED_ColorMode;
 
 void OLED_Init();

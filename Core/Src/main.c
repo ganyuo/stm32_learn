@@ -20,6 +20,7 @@
 #include "main.h"
 #include "dma.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -60,7 +61,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    static char data[] = "😀🧑‍💻";
+    if(htim == &htim4)
+    {
+        HAL_UART_Transmit_DMA(&huart1, data, sizeof(data));
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -95,23 +103,21 @@ int main(void)
     MX_DMA_Init();
     MX_USART1_UART_Init();
     MX_I2C1_Init();
+    MX_TIM4_Init();
     /* USER CODE BEGIN 2 */
-    OLED_Init();
+    HAL_TIM_Base_Start_IT(&htim4);
+    int counter = 0;
+    char message[32];
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        for(uint8_t i = 0; i < 64; i++)
-        {
-            OLED_NewFrame();
-
-            OLED_DrawImage((OLED_COLUMN - huajiImg.w) >> 1, 0, &huajiImg, OLED_COLOR_NORMAL);
-            OLED_PrintString(OLED_COLUMN - 2 * i, huajiImg.h + 8, "滑稽!!!", &font16x16, OLED_COLOR_NORMAL);
-
-            OLED_ShowFrame();
-        }
+        counter = __HAL_TIM_GET_COUNTER(&htim4);
+        sprintf(message, "counter: %d", counter);
+        // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)message, strlen(message));
+        HAL_Delay(99);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
