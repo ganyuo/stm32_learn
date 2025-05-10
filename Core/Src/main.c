@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,7 +60,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim == &htim2)
+    {
+        const char update_msg[] = "自动重装载\n";
+        HAL_UART_Transmit(&huart1, (uint8_t *)update_msg, sizeof(update_msg), HAL_MAX_DELAY);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -95,11 +101,12 @@ int main(void)
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_USART1_UART_Init();
-    MX_I2C1_Init();
     MX_TIM2_Init();
+    MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
-    OLED_Init();
-    HAL_TIM_Base_Start(&htim2);
+    // __HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE);
+    __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
+    HAL_TIM_Base_Start_IT(&htim2);
     int counter = 0;
     char message[32];
     /* USER CODE END 2 */
@@ -108,12 +115,16 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
+        const char reset_msg[] = "从模式触发\n";
+        if(__HAL_TIM_GET_FLAG(&htim2, TIM_FLAG_TRIGGER) == SET)
+        {
+            __HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_TRIGGER);
+            HAL_UART_Transmit(&huart1, (uint8_t *)reset_msg, sizeof(reset_msg), HAL_MAX_DELAY);
+        }
         counter = __HAL_TIM_GET_COUNTER(&htim2);
         sprintf(message, "counter: %d", counter);
-        OLED_NewFrame();
-        OLED_PrintString(0, 0, message, &font16x16, OLED_COLOR_NORMAL);
-        OLED_ShowFrame();
-        HAL_Delay(100);
+        HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+        HAL_Delay(499);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -150,7 +161,7 @@ void SystemClock_Config(void)
                                   |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
