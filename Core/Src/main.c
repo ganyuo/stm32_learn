@@ -59,16 +59,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float distance = 0;
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-    if(htim == &htim1 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-    {
-        int up_edge   = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);
-        int down_edge = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
-        distance = (down_edge - up_edge) * 0.034 / 2;
-    }
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -103,28 +94,25 @@ int main(void)
     MX_I2C1_Init();
     MX_TIM1_Init();
     MX_USART2_UART_Init();
+    MX_TIM3_Init();
     /* USER CODE BEGIN 2 */
-    // __HAL_TIM_CLEAR_FLAG(&htim1, TIM_FLAG_UPDATE);
-    HAL_TIM_Base_Start(&htim1);
-    HAL_TIM_IC_Start(&htim1, TIM_CHANNEL_3);
-    HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_4);
+
+    HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+
+    int count = 0;
+    char message[20] = "";
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        char message[32];
+        count = __HAL_TIM_GET_COUNTER(&htim1);
+        sprintf(message, "count: %d", count);
+        HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(count), HAL_MAX_DELAY);
 
-        HAL_GPIO_WritePin(Trig_GPIO_Port, Trig_Pin, GPIO_PIN_SET);
-        HAL_Delay(1);
-        __HAL_TIM_SET_COUNTER(&htim1, 0);
-        HAL_GPIO_WritePin(Trig_GPIO_Port, Trig_Pin, GPIO_PIN_RESET);
-        HAL_Delay(20);
-
-        sprintf(message, "距离: %.2f", distance);
-        HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-        HAL_Delay(500);
+        HAL_Delay(100);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
