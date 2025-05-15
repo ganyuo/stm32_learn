@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "drv8833.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,11 +95,12 @@ int main(void)
     MX_I2C1_Init();
     MX_TIM1_Init();
     MX_USART2_UART_Init();
-    MX_TIM4_Init();
+    MX_TIM2_Init();
     /* USER CODE BEGIN 2 */
 
+    DRV8833_Init();
     HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
-    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+    __HAL_TIM_SET_COUNTER(&htim1, 0);
 
     char message[20] = "";
     /* USER CODE END 2 */
@@ -108,23 +110,29 @@ int main(void)
     while (1)
     {
         int16_t count = __HAL_TIM_GET_COUNTER(&htim1);
-        if(count < 0)
+        if(count < -10)
         {
-            count = 0;
-            __HAL_TIM_SET_COUNTER(&htim1, 0);
+            count = -10;
+            __HAL_TIM_SET_COUNTER(&htim1, count);
         }
         else if(count > 10)
         {
             count = 10;
-            __HAL_TIM_SET_COUNTER(&htim1, 10);
+            __HAL_TIM_SET_COUNTER(&htim1, count);
         }
-        int duty = ((float)count + 2.5) * 20;
 
-        sprintf(message, "duty: %d", duty);
+        sprintf(message, "count: %d", count);
         int msg_len = strlen(message);
         HAL_UART_Transmit(&huart2, (uint8_t *)message, msg_len, HAL_MAX_DELAY);
 
-        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, duty);
+        if(count >= 0)
+        {
+            DRV8833_Forward(count * 10);
+        }
+        else
+        {
+            DRV8833_Backward(count * -10);
+        }
 
         HAL_Delay(1000);
         /* USER CODE END WHILE */
