@@ -18,8 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "i2c.h"
-#include "tim.h"
+#include "adc.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -28,7 +27,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "drv8833.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,48 +90,25 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_I2C1_Init();
-    MX_TIM1_Init();
-    MX_USART2_UART_Init();
-    MX_TIM2_Init();
+    MX_ADC1_Init();
+    MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
 
-    DRV8833_Init();
-    HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
-    __HAL_TIM_SET_COUNTER(&htim1, 0);
-
-    char message[20] = "";
+    HAL_ADCEx_Calibration_Start(&hadc1);
+    HAL_ADC_Start(&hadc1);
+    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        int16_t count = __HAL_TIM_GET_COUNTER(&htim1);
-        if(count < -10)
-        {
-            count = -10;
-            __HAL_TIM_SET_COUNTER(&htim1, count);
-        }
-        else if(count > 10)
-        {
-            count = 10;
-            __HAL_TIM_SET_COUNTER(&htim1, count);
-        }
+        int value = HAL_ADC_GetValue(&hadc1);
+        float voltage = (value / 4095.0) * 3.3;
 
-        sprintf(message, "count: %d", count);
-        int msg_len = strlen(message);
-        HAL_UART_Transmit(&huart2, (uint8_t *)message, msg_len, HAL_MAX_DELAY);
-
-        if(count >= 0)
-        {
-            DRV8833_Forward(count * 10);
-        }
-        else
-        {
-            DRV8833_Backward(count * -10);
-        }
-
+        char message[32] = "";
+        sprintf(message, "ADC: %d, voltage: %.2fV", value, voltage);
+        HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
         HAL_Delay(1000);
         /* USER CODE END WHILE */
 
@@ -150,6 +125,7 @@ void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
     /** Initializes the RCC Oscillators according to the specified parameters
     * in the RCC_OscInitTypeDef structure.
@@ -176,6 +152,12 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+    PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
         Error_Handler();
     }
