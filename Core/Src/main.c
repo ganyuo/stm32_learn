@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -58,7 +59,16 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+// uint16_t values[4];
+// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+// {
+//     if (hadc == &hadc1)
+//     {
+//         char message[32] = "";
+//         sprintf(message, "%d %d %d %d", values[0], values[1], values[2], values[3]);
+//         HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+//     }
+// }
 /* USER CODE END 0 */
 
 /**
@@ -90,24 +100,26 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
+    MX_DMA_Init();
     MX_ADC1_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
 
     HAL_ADCEx_Calibration_Start(&hadc1);
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+    uint16_t values[4];
+    HAL_ADC_Start_DMA(&hadc1, (uint16_t *)values, sizeof(values) / sizeof(uint16_t));
+        
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        int value = HAL_ADC_GetValue(&hadc1);
-        float voltage = (value / 4095.0) * 3.3;
+        float vref = 4095.0 / (float)values[3] * 1.2;
+        float voltage = (float)values[0] / 4095.0 * vref;
 
-        char message[32] = "";
-        sprintf(message, "ADC: %d, voltage: %.2fV", value, voltage);
+        char message[64] = "";
+        sprintf(message, "ADC: %d, voltage: %.2fV, vref: %.2f", values[0], voltage, vref);
         HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
         HAL_Delay(1000);
         /* USER CODE END WHILE */
