@@ -9,6 +9,8 @@
         "oled.h": "c",
         "string.h": "c",
         "font.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "time.h": "c",
+        "ga_rtc.h": "c"
     }
 }
