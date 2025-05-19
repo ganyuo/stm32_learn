@@ -18,7 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "rtc.h"
+#include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -27,7 +28,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
+#include "ws2812.h"
 // #include "ga_rtc.h"
 /* USER CODE END Includes */
 
@@ -92,41 +93,18 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
+    MX_DMA_Init();
     MX_USART1_UART_Init();
-    MX_RTC_Init();
+    MX_TIM4_Init();
     /* USER CODE BEGIN 2 */
 
-    // struct tm time_set = {
-    //     .tm_year = 2025 - 1970,
-    //     .tm_mon = 1 -1,
-    //     .tm_mday = 1,
-    //     .tm_hour = 23,
-    //     .tm_min = 59,
-    //     .tm_sec = 55
-    // };
-    // GA_RTC_SetTime(&time_set);
-
+    ws2812_update();
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        // struct tm *now = GA_RTC_GetTime();
-        // char message[64];
-        // sprintf(message, "%d_%d_%d %02d:%02d:%02d", now->tm_year + 1900, now->tm_mon + 1,
-        //         now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
-        // HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-        // HAL_Delay(1000);
-
-        RTC_TimeTypeDef rtc_time;
-        RTC_DateTypeDef rtc_date;
-        HAL_RTC_GetDate(&hrtc, &rtc_date, RTC_FORMAT_BCD);
-        HAL_RTC_GetTime(&hrtc, &rtc_time, RTC_FORMAT_BCD);
-        char message[64];
-        sprintf(message, "%d_%d_%d %02d:%02d:%02d", rtc_date.Year + 1970, rtc_date.Month,
-                rtc_date.Date, rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds);
-        HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
         HAL_Delay(1000);
         /* USER CODE END WHILE */
 
@@ -143,16 +121,14 @@ void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-    RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
     /** Initializes the RCC Oscillators according to the specified parameters
     * in the RCC_OscInitTypeDef structure.
     */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
     RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-    RCC_OscInitStruct.LSIState = RCC_LSI_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
@@ -171,12 +147,6 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-    PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
         Error_Handler();
     }
