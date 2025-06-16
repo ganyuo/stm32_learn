@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -63,45 +62,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint8_t uart_recv_buff[128];
-
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-    if(huart == &huart1)
-    {
-        Command_Write(uart_recv_buff, Size);
-        HAL_UARTEx_ReceiveToIdle_IT(&huart1, uart_recv_buff, sizeof(uart_recv_buff));
-    }
-}
-
-
-enum light_mode_t
-{
-    LIGHT_MODE_NORMAL = 0x01
-};
-
-void light_task_loop()
-{
-    uint8_t command[60];
-    uint8_t length = 0;
-
-    length = Command_GetCommand(command);
-    if (length <= 0)
-    {
-        return ;
-    }
-
-    if (command[2] == LIGHT_MODE_NORMAL)
-    {
-        for(uint8_t i = 0; i < LED_COUNT; i++)
-        {
-            ws2812_set(i, command[3 + 3 * i],
-                       command[3 + 3 * i + 1], command[3 + 3 * i + 2]);
-            ws2812_update();
-        }
-    }
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -133,19 +93,34 @@ int main(void)
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_DMA_Init();
     MX_USART1_UART_Init();
-    MX_TIM4_Init();
+    MX_TIM2_Init();
     /* USER CODE BEGIN 2 */
 
-    HAL_UARTEx_ReceiveToIdle_IT(&huart1, uart_recv_buff, sizeof(uart_recv_buff));
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, 200);
+    HAL_Delay(4000);
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, 100);
+    HAL_Delay(2000);
+    // __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, 0);
+    // HAL_Delay(2000);
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        light_task_loop();
+        for(int i = 0; i < 10; i++)
+        {
+            __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, 100 + i * 10);
+            HAL_Delay(2000);
+        }
+        for(int i = 10; i >= 0; i--)
+        {
+            __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, 100 + i * 10);
+            HAL_Delay(2000);
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
